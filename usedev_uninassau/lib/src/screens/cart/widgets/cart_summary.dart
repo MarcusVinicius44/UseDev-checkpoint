@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../services/cart_service.dart';
 import '../../../services/auth_service.dart';
+import '../../auth/login_screen.dart';
 
 class CartSummary extends StatefulWidget {
   const CartSummary({super.key});
@@ -19,6 +20,79 @@ class _CartSummaryState extends State<CartSummary> {
     _couponController.dispose();
     _shippingController.dispose();
     super.dispose();
+  }
+
+  void _showLoginRequiredDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          "Login Necessário",
+          style: GoogleFonts.orbitron(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
+        content: Text(
+          "Você precisa estar logado para finalizar a compra.",
+          style: GoogleFonts.poppins(fontSize: 16),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              "Cancelar",
+              style: GoogleFonts.poppins(
+                color: Colors.grey,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context); // Fecha o dialog
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF780BF7),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+            child: Text(
+              "Fazer Login",
+              style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handlePayment() async {
+    final authService = AuthService();
+    final isLoggedIn = await authService.isLoggedIn();
+
+    if (!mounted) return;
+
+    if (!isLoggedIn) {
+      _showLoginRequiredDialog();
+      return;
+    }
+
+    // Lógica de sucesso se estiver logado
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Pedido realizado com sucesso!'),
+        backgroundColor: Colors.green,
+      ),
+    );
+    CartService().clearCart();
+    Navigator.pop(context);
   }
 
   @override
@@ -44,7 +118,6 @@ class _CartSummaryState extends State<CartSummary> {
           ),
           const SizedBox(height: 24),
 
-
           _buildInputField(
             label: "Cupom de desconto",
             hintText: "Digite o cupom",
@@ -54,7 +127,6 @@ class _CartSummaryState extends State<CartSummary> {
             },
           ),
           const SizedBox(height: 20),
-
 
           _buildInputField(
             label: "Frete",
@@ -70,7 +142,6 @@ class _CartSummaryState extends State<CartSummary> {
 
           const Divider(color: Color(0xFF780BF7), thickness: 1),
           const SizedBox(height: 16),
-
 
           _buildSummaryRow(
             "${cart.itemCount.toString().padLeft(2, '0')} Produtos", 
@@ -93,7 +164,6 @@ class _CartSummaryState extends State<CartSummary> {
 
           const Divider(color: Color(0xFF780BF7), thickness: 1),
           const SizedBox(height: 16),
-
 
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -128,7 +198,6 @@ class _CartSummaryState extends State<CartSummary> {
           ),
           const SizedBox(height: 32),
 
-
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(
@@ -154,61 +223,7 @@ class _CartSummaryState extends State<CartSummary> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () async {
-                final authService = AuthService();
-                final isLoggedIn = await authService.isLoggedIn();
-
-                if (!context.mounted) return;
-
-                if (!isLoggedIn) {
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: Text(
-                        "Login Necessário",
-                        style: GoogleFonts.orbitron(fontWeight: FontWeight.bold),
-                      ),
-                      content: Text(
-                        "Você precisa estar logado para finalizar a compra.",
-                        style: GoogleFonts.poppins(),
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: Text(
-                            "Cancelar",
-                            style: GoogleFonts.poppins(color: Colors.grey),
-                          ),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {
-                            // TODO: Navigate to login page when implemented
-                            Navigator.pop(context);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF780BF7),
-                            foregroundColor: Colors.white,
-                          ),
-                          child: Text(
-                            "Fazer Login",
-                            style: GoogleFonts.poppins(),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                  return;
-                }
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Pedido realizado com sucesso!'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-                CartService().clearCart();
-                Navigator.pop(context);
-              },
+              onPressed: _handlePayment,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF780BF7),
                 foregroundColor: Colors.white,

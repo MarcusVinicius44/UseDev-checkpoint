@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:app/src/widgets/hero_section_widget.dart';
 import 'package:app/src/widgets/product_card_widget.dart';
 import 'package:app/src/widgets/subscription_section_widget.dart';
+import 'home/home.dart';
 
 class InitialScreen extends StatefulWidget {
   const InitialScreen({super.key});
@@ -17,8 +18,17 @@ class _InitialScreenState extends State<InitialScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: const Icon(Icons.menu, size: 40),
-        title: Image.asset('assets/logo_usedev.png', height: 40),
         centerTitle: true,
+        title: InkWell(
+          onTap: () {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => const HomePage()),
+              (route) => false,
+            );
+          },
+          child: Image.asset('assets/logo_usedev.png', height: 40),
+        ),
         actions: const [
           Icon(Icons.person_outline, size: 40),
           SizedBox(width: 10),
